@@ -77,12 +77,11 @@ begin
     end if;
   end process pixelCnt;
 
-
   lineCntxDN <= (others => '0') when lineRstxS = '1' else
   lineCntxDP + 1                when pixelCntxDP = 1328 - 1 else
   lineCntxDP;
 
-  lineRstxS <= '1' when lineCntxDN = 806 - 1 else '0';
+  lineRstxS <= '1' when lineCntxDP = 807 - 2 and pixelCntxDP = 1328 - 1 else '0';
 
   lineCnt: process (CLKxCI, RSTxRI) is
   begin
@@ -93,15 +92,15 @@ begin
     end if;
   end process lineCnt;
 
-  VSxSO <= HS_POLARITY when lineCntxDP < VS_PULSE else not HS_POLARITY;
-  HSxSO <= VS_POLARITY when pixelCntxDP < HS_PULSE else not VS_POLARITY;
+  VSxSO <= VS_POLARITY when lineCntxDP < VS_PULSE else not VS_POLARITY;
+  HSxSO <= HS_POLARITY when pixelCntxDP < HS_PULSE else not HS_POLARITY;
 
   RedxSO <= RedxSI when
   lineCntxDP >= VS_PULSE + VS_BACK_PORCH and
   lineCntxDP < VS_PULSE + VS_BACK_PORCH + VS_DISPLAY and
   pixelCntxDP >= HS_PULSE + HS_BACK_PORCH and 
   pixelCntxDP < HS_PULSE + HS_BACK_PORCH + HS_DISPLAY else (others => '0');
-  
+
   GreenxSO <= GreenxSI when 
   lineCntxDP >= VS_PULSE + VS_BACK_PORCH and
   lineCntxDP < VS_PULSE + VS_BACK_PORCH + VS_DISPLAY and
