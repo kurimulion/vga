@@ -66,7 +66,7 @@ begin
   pixelCntxDN <= (others => '0') when pixelRstxS = '1' else
   pixelCntxDP + 1;
 
-  pixelRstxS <= '1' when pixelCntxDN = 1328 - 1 else '0';
+  pixelRstxS <= '1' when pixelCntxDP = 1328 - 1 else '0';
 
   pixelCnt: process (CLKxCI, RSTxRI) is
   begin
@@ -79,7 +79,7 @@ begin
 
 
   lineCntxDN <= (others => '0') when lineRstxS = '1' else
-  lineCntxDP + 1                when pixelCntxDN = 1328 - 1 else
+  lineCntxDP + 1                when pixelCntxDP = 1328 - 1 else
   lineCntxDP;
 
   lineRstxS <= '1' when lineCntxDN = 806 - 1 else '0';
