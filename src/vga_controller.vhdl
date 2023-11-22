@@ -81,7 +81,7 @@ begin
   lineCntxDP + 1                when pixelCntxDP = 1328 - 1 else
   lineCntxDP;
 
-  lineRstxS <= '1' when lineCntxDP = 807 - 2 and pixelCntxDP = 1328 - 1 else '0';
+  lineRstxS <= '1' when lineCntxDP = 806 - 1 and pixelCntxDP = 1328 - 1 else '0';
 
   lineCnt: process (CLKxCI, RSTxRI) is
   begin
