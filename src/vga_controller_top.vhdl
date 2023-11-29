@@ -177,7 +177,7 @@ begin
   WEAxS     <= "0";
   WrAddrAxD <= (others => '0');
   DINAxD    <= (others => '0');
-  RdAddrBxD <= std_logic_vector(resize(shift_right(XCoordxD, 2), 16) + resize(shift_right(YCoordxD, 2) * 192, 16));
+  RdAddrBxD <= std_logic_vector(resize(shift_right(XCoordxD, 2) * 192, 16) + resize(shift_right(YCoordxD, 2), 16));
 
   RedxSI   <= DOUTBxD(3 * COLOR_BW - 1 downto 2 * COLOR_BW);
   GreenxSI <= DOUTBxD(2 * COLOR_BW - 1 downto 1 * COLOR_BW);
