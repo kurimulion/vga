@@ -113,8 +113,8 @@ begin
   pixelCntxDP >= HS_PULSE + HS_BACK_PORCH and 
   pixelCntxDP < HS_PULSE + HS_BACK_PORCH + HS_DISPLAY else (others => '0');
 
-  XCoordxDO <= pixelCntxDP - to_unsigned(HS_PULSE + HS_BACK_PORCH, 11);
-  YCoordxDO <= lineCntxDP - to_unsigned(VS_PULSE + VS_BACK_PORCH, 10);
+  XCoordxDO <= pixelCntxDP - to_unsigned(HS_PULSE + HS_BACK_PORCH, COORD_BW);
+  YCoordxDO <= lineCntxDP - to_unsigned(VS_PULSE + VS_BACK_PORCH, COORD_BW);
 
 end rtl;
 --=============================================================================
