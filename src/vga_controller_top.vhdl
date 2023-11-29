@@ -49,6 +49,15 @@ architecture rtl of vga_controller_top is
   -- clk_wiz_0
   signal CLK75xC : std_logic;
 
+  -- blk_mem_gen_0
+  signal WrAddrAxD : std_logic_vector(MEM_ADDR_BW - 1 downto 0);
+  signal RdAddrBxD : std_logic_vector(MEM_ADDR_BW - 1 downto 0);
+  signal ENAxS     : std_logic;
+  signal WEAxS     : std_logic_vector(0 downto 0);
+  signal ENBxS     : std_logic;
+  signal DINAxD    : std_logic_vector(MEM_DATA_BW - 1 downto 0);
+  signal DOUTBxD   : std_logic_vector(MEM_DATA_BW - 1 downto 0);
+
   -- vga_controller
   signal RedxSI   : std_logic_vector(COLOR_BW - 1 downto 0);
   signal GreenxSI : std_logic_vector(COLOR_BW - 1 downto 0);
@@ -69,6 +78,20 @@ architecture rtl of vga_controller_top is
     );
   end component clk_wiz_0;
 
+  component blk_mem_gen_0
+    port (
+      clka  : in std_logic;
+      ena   : in std_logic;
+      wea   : in std_logic_vector(0 downto 0);
+      addra : in std_logic_vector(15 downto 0);
+      dina  : in std_logic_vector(11 downto 0);
+
+      clkb  : in std_logic;
+      enb   : in std_logic;
+      addrb : in std_logic_vector(15 downto 0);
+      doutb : out std_logic_vector(11 downto 0)
+    );
+  end component;
 
   component vga_controller is
     port (
@@ -111,6 +134,20 @@ begin
       clk_in1  => CLK125xCI
     );
 
+  i_blk_mem_gen_0 : blk_mem_gen_0
+    port map (
+      clka  => CLK75xC,
+      ena   => ENAxS,
+      wea   => WEAxS,
+      addra => WrAddrAxD,
+      dina  => DINAxD,
+
+      clkb  => CLK75xC,
+      enb   => ENBxS,
+      addrb => RdAddrBxD,
+      doutb => DOUTBxD
+    );
+
   i_vga_controller: vga_controller
     port map (
       CLKxCI => CLK75xC,
@@ -120,11 +157,11 @@ begin
       GreenxSI => GreenxSI,
       BluexSI  => BluexSI,
 
-      XCoordxDO => XCoordxD,
-      YCoordxDO => YCoordxD,
-
       HSxSO => HSxSO,
       VSxSO => VSxSO,
+
+      XCoordxDO => XCoordxD,
+      YCoordxDO => YCoordxD,
 
       RedxSO   => RedxSO,
       GreenxSO => GreenxSO,
@@ -132,13 +169,19 @@ begin
     );
 
 --=============================================================================
--- COLOR LOGIC
+-- SIGNAL MAPPING
 --=============================================================================
 
-  -- All white
-  RedxSI   <= "1111";
-  GreenxSI <= "1111";
-  BluexSI  <= "1111";
+  ENAxS     <= '0';
+  ENBxS     <= '1';
+  WEAxS     <= "0";
+  WrAddrAxD <= (others => '0');
+  DINAxD    <= (others => '0');
+  RdAddrBxD <= std_logic_vector((XCoordxD(COLOR_BW downto 4) & "0000") + (YCoordxD(COLOR_BW downto  4) & "0000" * 192));
+
+  RedxSI   <= DOUTBxD(3 * COLOR_BW - 1 downto 2 * COLOR_BW);
+  GreenxSI <= DOUTBxD(2 * COLOR_BW - 1 downto 1 * COLOR_BW);
+  BluexSI  <= DOUTBxD(1 * COLOR_BW - 1 downto 0 * COLOR_BW);
 
 end rtl;
 --=============================================================================

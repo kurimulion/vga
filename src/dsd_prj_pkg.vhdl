@@ -20,6 +20,10 @@ use ieee.numeric_std.all;
 
 package dsd_prj_pkg is
 
+-------------------------------------------------------------------------------
+-- Lab 5 parameters
+-------------------------------------------------------------------------------
+
   -- Bitwidths for screen coordinate and colors
   constant COLOR_BW : natural := 4;  -- Each colour LED is 4 bits
   constant COORD_BW : natural := 12; -- 12 bits should accommodate any screen size we can consider
@@ -38,5 +42,9 @@ package dsd_prj_pkg is
   constant VS_PULSE       : natural   := 6;   -- Vertical sync pulse length in number of horizontal lines
   constant VS_BACK_PORCH  : natural   := 29;  -- Vertical sync back porch length in number of horizontal lines
   constant VS_POLARITY    : std_logic := '0'; -- Vertical sync polarity
+
+  -- Memory parameters
+  constant MEM_ADDR_BW : natural := 16;
+  constant MEM_DATA_BW : natural := 12; -- 3 * COLOR_BW
 
 end package dsd_prj_pkg;
