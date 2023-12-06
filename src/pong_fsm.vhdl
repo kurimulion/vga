@@ -49,8 +49,8 @@ end pong_fsm;
 -- ARCHITECTURE DECLARATION
 --=============================================================================
 architecture rtl of pong_fsm is
-  type state_type is (BEFORE_START, MOVING_RIGHT_DOWN, MOVING_RIGHT_UP, MOVING_LEFT_DOWN, MOVING_LEFT_UP, GAME_OVER, MOVE_LEFT, MOVE_RIGHT, IDLE);
-  type plate_state_type is (IDLE, LEFT, RIGHT);
+  type state_type is (BEFORE_START, MOVING_RIGHT_DOWN, MOVING_RIGHT_UP, MOVING_LEFT_DOWN, MOVING_LEFT_UP, GAME_OVER);
+  type plate_state_type is (START, IDLE, LEFT, RIGHT);
 
   signal STATEBallxDN, STATEBallxDP : state_type;
 
@@ -69,9 +69,8 @@ begin
     begin
         case StateBallxDP is 
           when BEFORE_START =>
-            BallXxDN <= HS_DISPLAY/2;
-            BallYxDN <= VS_DISPLAY/2;
-            PlateXxDN <= HS_DISPLAY/2;
+            BallXxDN <= TO_UNSIGNED(HS_DISPLAY/2, BallXxDN'length);
+            BallYxDN <= TO_UNSIGNED(VS_DISPLAY/2, BallYxDN'length); 
             if (LeftxSI = '1' and RightxSI = '1') then
               STATEBallxDN <= MOVING_RIGHT_DOWN;
             end if;
@@ -142,6 +141,10 @@ begin
   p_fsm_plate: process(all)
     begin
       case STATEPlatexDP is
+        when START =>
+          PlateXxDN <= TO_UNSIGNED(HS_DISPLAY/2, PlateXxDN'length);
+          if (LeftxSI = '1' and RightxSI = '1') then
+            STATEPlatexDN <= IDLE;
         when IDLE =>
           if (RightxSI = '1') then
             STATEPlatexDN <= RIGHT;
@@ -188,7 +191,7 @@ begin
   process (CLKxCI, RSTxRI) is
     begin
       if (RSTxRI = '1') then
-        STATEPlatexDP <= IDLE;
+        STATEPlatexDP <= START;
       elsif (CLKxCI'event and CLKxCI = '1') then
         STATEPlatexDP <= STATEPlatexDN;
         PlateXxDP <= PlateXxDN;
