@@ -250,6 +250,21 @@ begin
   BGGreenxS <= DOUTBxD(2 * COLOR_BW - 1 downto 1 * COLOR_BW);
   BGBluexS  <= DOUTBxD(1 * COLOR_BW - 1 downto 0 * COLOR_BW);
 
+  RedxS <= "1111" when DrawPlatexS = '1' else
+           "0000" when DrawBallxS = '1'  else
+           BGRedxS;
+  GreenxS <= "0000" when DrawPlatexS = '1' else
+             "1111" when DrawBallxS = '1'  else
+             BGGreenxS;
+  BluexS <= "0000" when DrawPlatexS = '1' else
+            "0000" when DrawBallxS = '1'  else
+            BGBluexS;
+
+  DrawPlatexS <= '1' when (XCoordxD >= PlateXxD - PLATE_WIDTH/2 and XCoordxD <= PlateXxD + PLATE_WIDTH/2 and
+                           YCoordxD = VS_DISPLAY - PLATE_HEIGHT) else '0';
+  DrawBallxS  <= '1' when (XCoordxD >= BallXxD - BALL_WIDTH/2 and XCoordxD <= BallXxD + BALL_WIDTH/2 and
+                           YCoordxD >= BallYxD - BALL_WIDTH/2 and YCoordxD <= BallYxD + BALL_WIDTH/2) else '0';
+
 end rtl;
 --=============================================================================
 -- ARCHITECTURE END

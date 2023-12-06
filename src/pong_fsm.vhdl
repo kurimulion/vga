@@ -8,7 +8,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 -- Packages
 library work;
-use work.pong_pkg.all;
+use work.dsd_prj_pkg.all;
 
 --=============================================================================
 --
@@ -54,7 +54,7 @@ architecture rtl of pong_fsm is
 
   signal STATEBallxDN, STATEBallxDP : state_type;
 
-  signal BallXxDP, BallYxDN : unsigned(COORD_BW - 1 downto 0);
+  signal BallXxDP, BallXxDN : unsigned(COORD_BW - 1 downto 0);
   signal BallYxDP, BallYxDN : unsigned(COORD_BW - 1 downto 0);
   signal PlateXxDP, PlateXxDN : unsigned(COORD_BW - 1 downto 0);
 
@@ -69,6 +69,9 @@ begin
     begin
         case StateBallxDP is 
           when BEFORE_START =>
+            BallXxDN <= HS_DISPLAY/2;
+            BallYxDN <= VS_DISPLAY/2;
+            PlateXxDN <= HS_DISPLAY/2;
             if (LeftxSI = '1' and RightxSI = '1') then
               STATEBallxDN <= MOVING_RIGHT_DOWN;
             end if;
@@ -126,14 +129,14 @@ begin
     begin
       if (RSTxRI = '1') then
         STATEBallxDP <= BEFORE_START;
-      elsif (CLKxCI'event and CLKxCI = '1' and VSEdgexSI) then
+      elsif (CLKxCI'event and CLKxCI = '1' and VSEdgexSI = '1') then
         STATEBallxDP <= STATEBallxDN;
         BallXxDP <= BallXxDN;
         BallYxDP <= BallYxDN;
       end if;
     end process;
 
-  BallxDO <= BallxDP;
+  BallXxDO <= BallXxDP;
   BallYxDO <= BallYxDN;
 
   p_fsm_plate: process(all)
@@ -146,15 +149,15 @@ begin
             STATEPlatexDN <= LEFT;
           end if;
         when LEFT =>
-          if (PlatexDP - PLATE_WIDHT/2 /= 0) then
-            if (PlateXxDP <= PLATE_STEP/2) then
-              PlatexDN <= PLATE_WIDHT/2;
+          if (PlateXxDP - (PLATE_WIDTH/2) /= 0) then
+            if (PlateXxDP <= PLATE_STEP_X/2) then
+              PlateXxDN <= TO_UNSIGNED(PLATE_WIDTH/2, PlateXxDN'length);
             else
-              PlatexDN <= PlatexDP - PLATE_STEP;
+              PlateXxDN <= PlateXxDP - PLATE_STEP_X;
             end if;
           end if;
 
-          PlatexDN <= PlatexDP - PLATE_STEP;
+          PlateXxDN <= PlateXxDP - PLATE_STEP_X;
           if (RightxSI = '1') then
             STATEPlatexDN <= RIGHT;
           elsif (LeftxSI = '1') then
@@ -163,15 +166,15 @@ begin
             STATEPlatexDN <= IDLE;
           end if;
         when RIGHT =>
-          if (PlatexDP + PLATE_WIDHT/2 /= HS_DISPLAY) then
-            if (PlateXxDP >= HS_DISPLAY - PLATE_STEP/2) then
-              PlatexDN <= HS_DISPLAY - PLATE_WIDHT/2;
+          if (PlateXxDP + (PLATE_WIDTH/2) /= HS_DISPLAY) then
+            if (PlateXxDP >= HS_DISPLAY - PLATE_STEP_X/2) then
+              PlateXxDN <= TO_UNSIGNED(HS_DISPLAY - PLATE_WIDTH/2, PlateXxDN'length);
             else
-              PlatexDN <= PlatexDP + PLATE_STEP;
+              PlateXxDN <= PlateXxDP + PLATE_STEP_X;
             end if;
           end if;
 
-          PlatexDN <= PlatexDP + PLATE_STEP;
+          PlateXxDN <= PlateXxDP + PLATE_STEP_X;
           if (RightxSI = '1') then
             STATEPlatexDN <= RIGHT;
           elsif (LeftxSI = '1') then
@@ -185,7 +188,7 @@ begin
   process (CLKxCI, RSTxRI) is
     begin
       if (RSTxRI = '1') then
-        STATEPlatexDP <= (others => '0');
+        STATEPlatexDP <= IDLE;
       elsif (CLKxCI'event and CLKxCI = '1') then
         STATEPlatexDP <= STATEPlatexDN;
         PlateXxDP <= PlateXxDN;
@@ -193,15 +196,6 @@ begin
     end process;
 
   PlateXxDO <= PlateXxDP;
-
-  p_fsm_seq: process(CLKxCI, RSTxRI) is
-    begin
-    if (RSTxRI = '1') then
-        StatexDP <= BEFORE_START;
-    elsif (CLKxCI'event and CLKxCI = '1') then
-        StatexDP <= StatexDN;
-    end if;
-  end process p_fsm_seq;
 
 end rtl;
 --=============================================================================
