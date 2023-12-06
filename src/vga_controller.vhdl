@@ -39,6 +39,8 @@ entity vga_controller is
     HSxSO : out std_logic;
     VSxSO : out std_logic;
 
+    VSEdgexSO : out std_logic;
+
     -- Data/color output
     RedxSO   : out std_logic_vector(COLOR_BW - 1 downto 0);
     GreenxSO : out std_logic_vector(COLOR_BW - 1 downto 0);
@@ -54,6 +56,8 @@ architecture rtl of vga_controller is
   -- TODO: Implement your own code here
   signal pixelCntxDP, pixelCntxDN : unsigned(11 - 0 downto 0);
   signal lineCntxDP, lineCntxDN : unsigned(10 - 0 downto 0);
+
+  signal VSEdgexDP, VSEdgexDN : std_logic;
 
   signal pixelRstxS : std_logic;
   signal lineRstxS : std_logic;
@@ -115,6 +119,19 @@ begin
 
   XCoordxDO <= pixelCntxDP - to_unsigned(HS_PULSE + HS_BACK_PORCH, COORD_BW);
   YCoordxDO <= lineCntxDP - to_unsigned(VS_PULSE + VS_BACK_PORCH, COORD_BW);
+
+  process (CLKxCI, RSTxRI) is
+  begin
+    if (RSTxRI = '1') then
+      VSEdgexDP <= '0';
+    elsif (CLKxCI'event and CLKxCI = '1') then
+      VSEdgexDP <= VSEdgexDN;
+    end if;
+  end process;
+
+  VSEdgexDN <= VS_POLARITY when lineCntxDP < VS_PULSE else not VS_POLARITY;
+
+  VSEdgexSO <= not VSEdgexDP and VSEdgexDN;
 
 end rtl;
 --=============================================================================
