@@ -16,9 +16,17 @@ use ieee.numeric_std.all;
 --
 -- The parameters are given here http://tinyvga.com/vga-timing/1024x768@70Hz
 -- with a more elaborate explanation at https://projectf.io/posts/video-timings-vga-720p-1080p/
+--
+-- Briefly, the video timing for horizontal and vertical follows:
+--    active pixels --> front porch --> sync --> back porch --> active pixels
+-- During the sync period, we give a sync signal with the value of the polarity below.
 --=============================================================================
 
 package dsd_prj_pkg is
+
+-------------------------------------------------------------------------------
+-- Lab 5 parameters
+-------------------------------------------------------------------------------
 
   -- Bitwidths for screen coordinate and colors
   constant COLOR_BW : natural := 4;  -- Each colour LED is 4 bits
@@ -39,9 +47,17 @@ package dsd_prj_pkg is
   constant VS_BACK_PORCH  : natural   := 29;  -- Vertical sync back porch length in number of horizontal lines
   constant VS_POLARITY    : std_logic := '0'; -- Vertical sync polarity
 
+-------------------------------------------------------------------------------
+-- Lab 6 parameters
+-------------------------------------------------------------------------------
+
   -- Memory parameters
   constant MEM_ADDR_BW : natural := 16;
-  constant MEM_DATA_BW : natural := 12; -- 3 * COLOR_BW
+  constant MEM_DATA_BW : natural := 12;
+
+-------------------------------------------------------------------------------
+-- Lab 7 parameters
+-------------------------------------------------------------------------------
 
   -- Pong parameters (in pixels)
   constant BALL_WIDTH   : natural := 10;
@@ -51,5 +67,32 @@ package dsd_prj_pkg is
   constant PLATE_WIDTH  : natural := 70;
   constant PLATE_HEIGHT : natural := 10;
   constant PLATE_STEP_X : natural := 40;
+
+-------------------------------------------------------------------------------
+-- Lab 8 parameters
+-------------------------------------------------------------------------------
+
+  -- Mandelbrot parameters
+  -- Use QNi.Nf notation, with Ni being number of integer bits WITH sign and Nf number of fractional bits
+  -- Use UQNi.Nf notation for unsigned, with Ni being just the number of integer bits WITHOUT sign
+  constant N_INT  : natural := 3;   -- # Integer bits (plus sign-bit)
+  constant N_FRAC : natural := 15;  -- # Fractional bits
+  constant N_BITS : natural := N_INT + N_FRAC;
+
+  constant ITER_LIM : natural := 2**(2 + N_FRAC); -- Represents 2^2 in UQ3.15 (100.000000000000000)
+  constant MAX_ITER : natural := 100;             -- Maximum iteration bumber before stopping
+
+  -- Start at (-2, -1) = (0b110, 0b111) on the complex plane. As the Mandelbrot fractal is symmetric
+  -- along the real axis, this can be used to draw the Mandelbrot fractal similar to starting at (-2, 1).
+  -- The benefit of starting at (-2, -1) is that we only have to ADD the increments to C_RE_0 and C_IM_0
+  -- instead of having to subtract the increment C_IM_INC from C_IM_0 to go down the imaginary axis
+  constant C_RE_0 : signed(N_BITS - 1 downto 0) := to_signed(-2 * (2**N_FRAC), N_BITS); -- Q3.15
+  constant C_IM_0 : signed(N_BITS - 1 downto 0) := to_signed(-1 * (2**N_FRAC), N_BITS); -- Q3.15
+
+  -- Increment by 3*2^(-10) and 5*2^(-11) for real and imaginary, respectively.
+  -- For real (X), starting at -2 with 1024 = 2^10 pixels, we end at -2 + 2^10 * 3 * 2^(-10) = -2 + 3 = 1
+  -- For imaginary (Y), starting at -1 with 768 pixels, we end at -1 + 768*5*2^(-11) = 0.875
+  constant C_RE_INC : signed(N_BITS - 1 downto 0) := to_signed(3 * 2**(-10 + N_FRAC), N_BITS); -- Q3.15
+  constant C_IM_INC : signed(N_BITS - 1 downto 0) := to_signed(5 * 2**(-11 + N_FRAC), N_BITS); -- Q3.15
 
 end package dsd_prj_pkg;
