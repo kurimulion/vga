@@ -268,12 +268,12 @@ begin
 -- Port A
 ENAxS     <= MandelbrotWExS;
 WEAxS     <= (others => MandelbrotWExS);
-WrAddrAxD <= std_logic_vector(resize(shift_right(MandelbrotXxD, 2), 16) + resize(shift_right(MandelbrotYxD, 2) * 256, 16));
+WrAddrAxD <= std_logic_vector(resize(MandelbrotXxD(COORD_BW - 1 - 2 downto 0), MEM_ADDR_BW) + resize(MandelbrotYxD(COORD_BW - 1 - 2 downto 0) * 256, MEM_ADDR_BW));
 DINAxD    <= std_logic_vector(MandelbrotITERxD);
 
 -- Port B
 ENBxS     <= '1';
-RdAddrBxD <= std_logic_vector(resize(shift_right(XCoordxD, 2), 16) + resize(shift_right(YCoordxD, 2) * 256, 16));
+RdAddrBxD <= std_logic_vector(resize(XCoordxD(COORD_BW - 1 - 2 downto 0), MEM_ADDR_BW) + resize(YCoordxD(COORD_BW - 1 - 2 downto 0) * 256, MEM_ADDR_BW));
 
 --=============================================================================
 -- SPRITE SIGNAL MAPPING
@@ -283,15 +283,15 @@ BGRedxS   <= DOUTBxD(3 * COLOR_BW - 1 downto 2 * COLOR_BW);
 BGGreenxS <= DOUTBxD(2 * COLOR_BW - 1 downto 1 * COLOR_BW);
 BGBluexS  <= DOUTBxD(1 * COLOR_BW - 1 downto 0 * COLOR_BW);
 
-RedxS <= "1111" when DrawPlatexS = '1' else
+RedxS   <= "1111" when DrawPlatexS = '1' else
            "0000" when DrawBallxS = '1'  else
            BGRedxS;
 GreenxS <= "0000" when DrawPlatexS = '1' else
-            "1111" when DrawBallxS = '1'  else
-            BGGreenxS;
-BluexS <= "0000" when DrawPlatexS = '1' else
-          "0000" when DrawBallxS = '1'  else
-          BGBluexS;
+           "1111" when DrawBallxS = '1'  else
+           BGGreenxS;
+BluexS  <= "0000" when DrawPlatexS = '1' else
+           "0000" when DrawBallxS = '1'  else
+           BGBluexS;
 
 DrawPlatexS <= '1' when (XCoordxD >= PlateXxD - PLATE_WIDTH/2 and XCoordxD <= PlateXxD + PLATE_WIDTH/2 and
                          YCoordxD >= VS_DISPLAY - PLATE_HEIGHT and YCoordxD <= VS_DISPLAY) else '0';
