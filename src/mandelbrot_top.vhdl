@@ -268,12 +268,12 @@ begin
 -- Port A
 ENAxS     <= MandelbrotWExS;
 WEAxS     <= (others => MandelbrotWExS);
-WrAddrAxD <= std_logic_vector(resize(MandelbrotXxD(COORD_BW - 1 - 2 downto 0), MEM_ADDR_BW) + resize(MandelbrotYxD(COORD_BW - 1 - 2 downto 0) * 256, MEM_ADDR_BW));
-DINAxD    <= std_logic_vector(MandelbrotITERxD);
+WrAddrAxD <= std_logic_vector(resize(shift_right(MandelbrotXxD, 2) + shift_right(MandelbrotYxD, 2) * 256, 16));
+DINAxD    <= std_logic_vector(MandelbrotITERxD) when MandelBrotITERxD /= MAX_ITER else (others => '0');
 
 -- Port B
 ENBxS     <= '1';
-RdAddrBxD <= std_logic_vector(resize(XCoordxD(COORD_BW - 1 - 2 downto 0), MEM_ADDR_BW) + resize(YCoordxD(COORD_BW - 1 - 2 downto 0) * 256, MEM_ADDR_BW));
+RdAddrBxD <= std_logic_vector(resize(shift_right(XCoordxD, 2) + shift_right(YCoordxD, 2) * 256, 16));
 
 --=============================================================================
 -- SPRITE SIGNAL MAPPING
