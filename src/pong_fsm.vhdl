@@ -50,7 +50,7 @@ end pong_fsm;
 --=============================================================================
 architecture rtl of pong_fsm is
   type state_type is (BEFORE_START, MOVING_RIGHT_DOWN, MOVING_RIGHT_UP, MOVING_LEFT_DOWN, MOVING_LEFT_UP, GAME_OVER);
-  type plate_state_type is (START, IDLE, LEFT, RIGHT);
+  type plate_state_type is (START, IDLE, LEFT, RIGHT, HOLD);
 
   signal STATEBallxDN, STATEBallxDP : state_type;
 
@@ -186,24 +186,17 @@ begin
           else
             PlateXxDN <= PlateXxDP - PLATE_STEP_X;
           end if;
-          if (RightxSI = '1') then
-            STATEPlatexDN <= RIGHT;
-          elsif (LeftxSI = '1') then
-            STATEPlatexDN <= LEFT;
-          else
-            STATEPlatexDN <= IDLE;
-          end if;
+          STATEPlatexDN <= HOLD;
         when RIGHT =>
           if (PlateXxDP >= HS_DISPLAY - PLATE_WIDTH/2 or PlateXxDP + PLATE_STEP_X >= HS_DISPLAY) then
             PlateXxDN <= TO_UNSIGNED(HS_DISPLAY - PLATE_WIDTH/2, PlateXxDN'length);
           else
             PlateXxDN <= PlateXxDP + PLATE_STEP_X;
           end if;
-          if (RightxSI = '1') then
-            STATEPlatexDN <= RIGHT;
-          elsif (LeftxSI = '1') then
-            STATEPlatexDN <= LEFT;
-          else
+          STATEPlatexDN <= HOLD;
+        when HOLD =>
+          STATEPlatexDN <= HOLD;
+          if (LeftxSI = '0' and RightxSI = '0') then
             STATEPlatexDN <= IDLE;
           end if;
       end case;
