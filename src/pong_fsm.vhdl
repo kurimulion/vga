@@ -41,7 +41,10 @@ entity pong_fsm is
     -- Ball and plate coordinates
     BallXxDO  : out unsigned(COORD_BW - 1 downto 0);
     BallYxDO  : out unsigned(COORD_BW - 1 downto 0);
-    PlateXxDO : out unsigned(COORD_BW - 1 downto 0)
+    PlateXxDO : out unsigned(COORD_BW - 1 downto 0);
+
+    -- Floating plate coordinate
+    FloatPlateXxDO : out unsigned(COORD_BW - 1 downto 0)
   );
 end pong_fsm;
 
@@ -57,6 +60,8 @@ architecture rtl of pong_fsm is
   signal BallXxDP, BallXxDN : unsigned(COORD_BW - 1 downto 0);
   signal BallYxDP, BallYxDN : unsigned(COORD_BW - 1 downto 0);
   signal PlateXxDP, PlateXxDN : unsigned(COORD_BW - 1 downto 0);
+  signal FloatPlateXxDP, FloatPlateXxDN : unsigned(COORD_BW - 1 downto 0);
+  signal FloatPlateDirxDP, FloatPlateDirxDN : std_logic;
 
   signal STATEPlatexDP, STATEPlatexDN : plate_state_type;
   
@@ -86,6 +91,11 @@ begin
               STATEBallxDN <= MOVING_RIGHT_UP;
             elsif (BallXxDP >= HS_DISPLAY - BALL_WIDTH and BallYxDP /= VS_DISPLAY) then
               STATEBallxDN <= MOVING_LEFT_DOWN;
+            -- BallXxDP - BALL_WIDTH/2 >= FloatingPlateXxDP - PLATE_WIDTH/2 and BallXxDP + BALL_WIDTH/2 <= FloatingPlateXxDP + PLATE_WIDTH/2 and BallYxDP + BALL_HEIGHT/2 >= FLOATING_PLATE_Y
+            elsif (BallXxDP + PLATE_WIDTH/2 >= FloatPlateXxDP + BALL_WIDTH/2 and 
+                   BallXxDP + BALL_WIDTH/2 <= FloatPlateXxDP + PLATE_WIDTH/2 and 
+                   BallYxDP + BALL_HEIGHT/2 >= FLOATING_PLATE_Y) then
+              STATEBallxDN <= MOVING_RIGHT_UP;
             elsif (BallYxDP + BALL_HEIGHT/2 >= VS_DISPLAY) then 
               STATEBallxDN <= GAME_OVER;
             end if;
@@ -100,6 +110,10 @@ begin
             if (BallXxDP + BALL_WIDTH/2 >= HS_DISPLAY and BallYxDP + BALL_HEIGHT/2 < VS_DISPLAY) then
               STATEBallxDN <= MOVING_LEFT_UP;
             elsif (BallYxDP <= BALL_HEIGHT/2) then
+              STATEBallxDN <= MOVING_RIGHT_DOWN;
+            elsif (BallXxDP + PLATE_WIDTH/2 >= FloatPlateXxDP + BALL_WIDTH/2 and 
+                   BallXxDP + BALL_WIDTH/2 <= FloatPlateXxDP + PLATE_WIDTH/2 and 
+                   BallYxDP <= FLOATING_PLATE_Y + PLATE_HEIGHT + BALL_HEIGHT/2) then
               STATEBallxDN <= MOVING_RIGHT_DOWN;
             elsif (BallYxDP + BALL_HEIGHT/2 >= VS_DISPLAY) then 
               STATEBallxDN <= GAME_OVER;
@@ -120,6 +134,10 @@ begin
               STATEBallxDN <= MOVING_LEFT_DOWN;
             elsif (BallXxDP <= BALL_WIDTH/2) then
               STATEBallxDN <= MOVING_RIGHT_UP;
+            elsif (BallXxDP + PLATE_WIDTH/2 <= FloatPlateXxDP + BALL_WIDTH/2 and 
+                   BallXxDP + BALL_WIDTH/2 >= FloatPlateXxDP + PLATE_WIDTH/2 and 
+                   BallYxDP <= FLOATING_PLATE_Y + PLATE_HEIGHT + BALL_HEIGHT/2) then
+              STATEBallxDN <= MOVING_LEFT_DOWN;
             elsif (BallYxDP + BALL_HEIGHT/2 >= VS_DISPLAY) then 
               STATEBallxDN <= GAME_OVER;
           end if;
@@ -135,6 +153,10 @@ begin
               STATEBallxDN <= MOVING_RIGHT_DOWN;
             -- BallXxDP - BALL_WIDTH/2 >= PlateXxDP - PLATE_WIDTH/2 and BallXxDP + BALL_WIDTH/2 <= PlateXxDP + PLATE_WIDTH/2 and BallYxDP + BALL_HEIGHT/2 >= VS_DISPLAY - PLATE_HEIGHT
             elsif (BallXxDP + PLATE_WIDTH/2 >= PlateXxDP + BALL_WIDTH/2 and BallXxDP + BALL_WIDTH/2 <= PlateXxDP + PLATE_WIDTH/2 and BallYxDP + BALL_HEIGHT/2 >= VS_DISPLAY - PLATE_HEIGHT) then
+              STATEBallxDN <= MOVING_RIGHT_UP;
+            elsif (BallXxDP + PLATE_WIDTH/2 <= FloatPlateXxDP + BALL_WIDTH/2 and 
+                   BallXxDP + BALL_WIDTH/2 >= FloatPlateXxDP + PLATE_WIDTH/2 and 
+                   BallYxDP + BALL_HEIGHT/2 >= FLOATING_PLATE_Y) then
               STATEBallxDN <= MOVING_RIGHT_UP;
             elsif (BallYxDP + BALL_HEIGHT/2 >= VS_DISPLAY) then 
               STATEBallxDN <= GAME_OVER;
@@ -213,6 +235,24 @@ begin
     end process;
 
   PlateXxDO <= PlateXxDP;
+
+  FloatPlateXxDN <= FloatPlateXxDP + PLATE_STEP_X when FloatPlateDirxDP = '1' else 
+                    FloatPlateXxDP - PLATE_STEP_X;
+  FloatPlateDirxDN <= not FloatPlateDirxDP when FloatPlateXxDN >= HS_DISPLAY - PLATE_WIDTH/2 or FloatPlateXxDN <= PLATE_WIDTH/2 else
+                      FloatPlateDirxDP;
+
+  process (CLKxCI, RSTxRI, VSEdgexSI) is
+    begin
+      if (RSTxRI = '1') then
+        FloatPlateXxDP <= TO_UNSIGNED(HS_DISPLAY/2, PlateXxDP'length);
+        FloatPlateDirxDP <= '1';
+      elsif (CLKxCI'event and CLKxCI = '1' and VSEdgexSI = '1') then
+        FloatPlateXxDP <= FloatPlateXxDN;
+        FloatPlateDirxDP <= FloatPlateDirxDN;
+      end if;
+    end process;
+
+  FloatPlateXxDO <= FloatPlateXxDP;
 
 end rtl;
 --=============================================================================

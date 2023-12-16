@@ -81,9 +81,11 @@ architecture rtl of mandelbrot_top is
   signal BallXxD  : unsigned(COORD_BW - 1 downto 0); -- Coordinates of ball and plate
   signal BallYxD  : unsigned(COORD_BW - 1 downto 0);
   signal PlateXxD : unsigned(COORD_BW - 1 downto 0);
+  signal FloatPlateXxD : unsigned(COORD_BW - 1 downto 0);
 
   signal DrawBallxS  : std_logic; -- If 1, draw the ball
   signal DrawPlatexS : std_logic; -- If 1, draw the plate
+  signal DrawFloatPlatexS : std_logic; -- If 1, draw the floating plate
 
   -- mandelbrot
   signal MandelbrotWExS   : std_logic; -- If 1, Mandelbrot writes
@@ -247,7 +249,8 @@ begin
 
       BallXxDO  => BallXxD,
       BallYxDO  => BallYxD,
-      PlateXxDO => PlateXxD
+      PlateXxDO => PlateXxD,
+      FloatPlateXxDO => FloatPlateXxD
     );
 
   i_mandelbrot : mandelbrot
@@ -285,20 +288,25 @@ BGBluexS  <= DOUTBxD(1 * COLOR_BW - 1 downto 0 * COLOR_BW);
 
 RedxS   <= "1111" when DrawPlatexS = '1' else
            "0000" when DrawBallxS = '1'  else
+           "0000" when DrawFloatPlatexS = '1' else
            BGRedxS;
 GreenxS <= "0000" when DrawPlatexS = '1' else
            "1111" when DrawBallxS = '1'  else
+           "0000" when DrawFloatPlatexS = '1' else
            BGGreenxS;
 BluexS  <= "0000" when DrawPlatexS = '1' else
            "0000" when DrawBallxS = '1'  else
+           "1111" when DrawFloatPlatexS = '1' else
            BGBluexS;
 
 DrawPlatexS <= '1' when (XCoordxD >= PlateXxD - PLATE_WIDTH/2 and XCoordxD <= PlateXxD + PLATE_WIDTH/2 and
                          YCoordxD >= VS_DISPLAY - PLATE_HEIGHT and YCoordxD <= VS_DISPLAY) else '0';
 -- DrawBallxS  <= '1' when (XCoordxD >= BallXxD - BALL_WIDTH/2 and XCoordxD <= BallXxD + BALL_WIDTH/2 and
 --                          YCoordxD >= BallYxD - BALL_WIDTH/2 and YCoordxD <= BallYxD + BALL_WIDTH/2) else '0';
-DrawBallxS  <= '1' when (TO_UNSIGNED((XCoordxD - BallXxD) * (YCoordxD - BallYxD)) + 
-                         TO_UNSIGNED((XCoordxD - BallXxD) * (XCoordxD - BallXxD)) <= BALL_WIDTH) else '0';
+DrawBallxS  <= '1' when (UNSIGNED(SIGNED(YCoordxD - BallYxD) * SIGNED(YCoordxD - BallYxD)) +
+                         UNSIGNED(SIGNED(XCoordxD - BallXxD) * SIGNED(XCoordxD - BallXxD)) else '0';
+DrawFloatPlatexS <= '1' when (XCoordxD >= FloatPlateXxD - PLATE_WIDTH/2 and XCoordxD <= FloatPlateXxD + PLATE_WIDTH/2 and
+                              YCoordxD >= FLOATING_PLATE_Y and YCoordxD <= FLOATING_PLATE_Y + PLATE_HEIGHT) else '0';
 
 end rtl;
 --=============================================================================
