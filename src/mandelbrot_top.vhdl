@@ -295,8 +295,10 @@ BluexS  <= "0000" when DrawPlatexS = '1' else
 
 DrawPlatexS <= '1' when (XCoordxD >= PlateXxD - PLATE_WIDTH/2 and XCoordxD <= PlateXxD + PLATE_WIDTH/2 and
                          YCoordxD >= VS_DISPLAY - PLATE_HEIGHT and YCoordxD <= VS_DISPLAY) else '0';
-DrawBallxS  <= '1' when (XCoordxD >= BallXxD - BALL_WIDTH/2 and XCoordxD <= BallXxD + BALL_WIDTH/2 and
-                         YCoordxD >= BallYxD - BALL_WIDTH/2 and YCoordxD <= BallYxD + BALL_WIDTH/2) else '0';
+-- DrawBallxS  <= '1' when (XCoordxD >= BallXxD - BALL_WIDTH/2 and XCoordxD <= BallXxD + BALL_WIDTH/2 and
+--                          YCoordxD >= BallYxD - BALL_WIDTH/2 and YCoordxD <= BallYxD + BALL_WIDTH/2) else '0';
+DrawBallxS  <= '1' when (TO_UNSIGNED((XCoordxD - BallXxD) * (YCoordxD - BallYxD)) + 
+                         TO_UNSIGNED((XCoordxD - BallXxD) * (XCoordxD - BallXxD)) <= BALL_WIDTH) else '0';
 
 end rtl;
 --=============================================================================
