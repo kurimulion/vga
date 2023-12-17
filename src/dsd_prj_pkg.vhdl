@@ -68,6 +68,7 @@ package dsd_prj_pkg is
   constant PLATE_HEIGHT : natural := 10;
   constant PLATE_STEP_X : natural := 40;
   constant FLOATING_PLATE_Y : natural := 350;
+  constant FLOATING_PLATE_WIDTH : natural := 140;
 
 -------------------------------------------------------------------------------
 -- Lab 8 parameters

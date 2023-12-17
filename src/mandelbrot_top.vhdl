@@ -306,7 +306,7 @@ DrawPlatexS <= '1' when (XCoordxD >= PlateXxD - PLATE_WIDTH/2 and XCoordxD <= Pl
 --                          YCoordxD >= BallYxD - BALL_WIDTH/2 and YCoordxD <= BallYxD + BALL_WIDTH/2) else '0';
 DrawBallxS  <= '1' when (UNSIGNED(SIGNED(YCoordxD - BallYxD) * SIGNED(YCoordxD - BallYxD)) +
                          UNSIGNED(SIGNED(XCoordxD - BallXxD) * SIGNED(XCoordxD - BallXxD)) <= (BALL_WIDTH * BALL_WIDTH / 4)) else '0';
-DrawFloatPlatexS <= '1' when (XCoordxD >= FloatPlateXxD - PLATE_WIDTH/2 and XCoordxD <= FloatPlateXxD + PLATE_WIDTH/2 and
+DrawFloatPlatexS <= '1' when (XCoordxD >= FloatPlateXxD - FLOATING_PLATE_WIDTH/2 and XCoordxD <= FloatPlateXxD + FLOATING_PLATE_WIDTH/2 and
                               YCoordxD >= FLOATING_PLATE_Y and YCoordxD <= FLOATING_PLATE_Y + PLATE_HEIGHT) else '0';
 
 end rtl;
