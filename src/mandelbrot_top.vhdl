@@ -166,7 +166,8 @@ architecture rtl of mandelbrot_top is
       -- Ball and plate coordinates
       BallXxDO  : out unsigned(COORD_BW - 1 downto 0);
       BallYxDO  : out unsigned(COORD_BW - 1 downto 0);
-      PlateXxDO : out unsigned(COORD_BW - 1 downto 0)
+      PlateXxDO : out unsigned(COORD_BW - 1 downto 0);
+      FloatPlateXxDO : out unsigned(COORD_BW - 1 downto 0)
     );
   end component pong_fsm;
 
@@ -304,7 +305,7 @@ DrawPlatexS <= '1' when (XCoordxD >= PlateXxD - PLATE_WIDTH/2 and XCoordxD <= Pl
 -- DrawBallxS  <= '1' when (XCoordxD >= BallXxD - BALL_WIDTH/2 and XCoordxD <= BallXxD + BALL_WIDTH/2 and
 --                          YCoordxD >= BallYxD - BALL_WIDTH/2 and YCoordxD <= BallYxD + BALL_WIDTH/2) else '0';
 DrawBallxS  <= '1' when (UNSIGNED(SIGNED(YCoordxD - BallYxD) * SIGNED(YCoordxD - BallYxD)) +
-                         UNSIGNED(SIGNED(XCoordxD - BallXxD) * SIGNED(XCoordxD - BallXxD)) else '0';
+                         UNSIGNED(SIGNED(XCoordxD - BallXxD) * SIGNED(XCoordxD - BallXxD)) <= (BALL_WIDTH * BALL_WIDTH / 4)) else '0';
 DrawFloatPlatexS <= '1' when (XCoordxD >= FloatPlateXxD - PLATE_WIDTH/2 and XCoordxD <= FloatPlateXxD + PLATE_WIDTH/2 and
                               YCoordxD >= FLOATING_PLATE_Y and YCoordxD <= FLOATING_PLATE_Y + PLATE_HEIGHT) else '0';
 
