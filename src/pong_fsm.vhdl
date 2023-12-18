@@ -157,12 +157,12 @@ begin
               STATEBallxDN <= MOVING_RIGHT_DOWN;
             -- BallXxDP - BALL_WIDTH/2 >= PlateXxDP - PLATE_WIDTH/2 and BallXxDP + BALL_WIDTH/2 <= PlateXxDP + PLATE_WIDTH/2 and BallYxDP + BALL_HEIGHT/2 >= VS_DISPLAY - PLATE_HEIGHT
             elsif (BallXxDP + PLATE_WIDTH/2 >= PlateXxDP + BALL_WIDTH/2 and BallXxDP + BALL_WIDTH/2 <= PlateXxDP + PLATE_WIDTH/2 and BallYxDP + BALL_HEIGHT/2 >= VS_DISPLAY - PLATE_HEIGHT) then
-              STATEBallxDN <= MOVING_RIGHT_UP;
+              STATEBallxDN <= MOVING_LEFT_UP;
             elsif (BallXxDP + FLOATING_PLATE_WIDTH/2 >= FloatPlateXxDP + BALL_WIDTH/2 and 
                    BallXxDP + BALL_WIDTH/2 <= FloatPlateXxDP + FLOATING_PLATE_WIDTH/2 and 
                    BallYxDP + BALL_HEIGHT/2 >= FLOATING_PLATE_Y and
                    BallYxDP + BALL_HEIGHT/2 <= FLOATING_PLATE_Y + PLATE_HEIGHT) then
-              STATEBallxDN <= MOVING_RIGHT_UP;
+              STATEBallxDN <= MOVING_LEFT_UP;
             elsif (BallYxDP + BALL_HEIGHT/2 >= VS_DISPLAY) then 
               STATEBallxDN <= GAME_OVER;
             end if;
@@ -208,10 +208,10 @@ begin
             STATEPlatexDN <= LEFT;
           end if;
         when LEFT =>
-          if (PlateXxDP <= PLATE_WIDTH/2 or PlateXxDP <= PLATE_STEP_X) then
-            PlateXxDN <= TO_UNSIGNED(PLATE_WIDTH/2, PlateXxDN'length);
-          else
+          if (PlateXxDP > PLATE_WIDTH/2 + PLATE_STEP_X) then
             PlateXxDN <= PlateXxDP - PLATE_STEP_X;
+          else
+            PlateXxDN <= TO_UNSIGNED(PLATE_WIDTH/2, PlateXxDN'length);
           end if;
           STATEPlatexDN <= HOLD;
         when RIGHT =>
