@@ -60,18 +60,18 @@ architecture rtl of pong_fsm is
   type state_type is (BEFORE_START, MOVING_RIGHT_DOWN, MOVING_RIGHT_UP, MOVING_LEFT_DOWN, MOVING_LEFT_UP, GAME_OVER);
   type plate_state_type is (START, IDLE, LEFT, RIGHT, HOLD);
 
-  signal STATEBallxDN, STATEBallxDP : state_type;
+  signal StateBallxDN, StateBallxDP : state_type;
 
   signal BallXxDP, BallXxDN : unsigned(COORD_BW - 1 downto 0);
   signal BallYxDP, BallYxDN : unsigned(COORD_BW - 1 downto 0);
   signal PlateXxDP, PlateXxDN : unsigned(COORD_BW - 1 downto 0);
   signal FloatPlateXxDP, FloatPlateXxDN : unsigned(COORD_BW - 1 downto 0);
   signal FloatPlateDirxDP, FloatPlateDirxDN : std_logic;
-  signal counterxDP, counterxDN : unsigned(3 downto 0);
+  signal FloatCntxDP, FloatCntxDN : unsigned(4 - 1 downto 0);
 
-  signal STATEPlatexDP, STATEPlatexDN : plate_state_type;
+  signal StatePlatexDP, StatePlatexDN : plate_state_type;
   
-  signal Colour_CNTxDP, Colour_CNTxDN : unsigned(3 - 1 downto 0);
+  signal ColourCNTxDP, ColourCNTxDN : unsigned(3 - 1 downto 0);
   
   signal PlayerLostxS : std_logic;
   
@@ -84,15 +84,15 @@ begin
     begin
         BallXxDN <= BallXxDP;
         BallYxDN <= BallYxDP;
-        STATEBallxDN <= STATEBallxDP;
+        StateBallxDN <= StateBallxDP;
         PlayerLostxS <= '0';
-        Colour_CNTxDN <= Colour_CNTxDP;
+        ColourCNTxDN <= ColourCNTxDP;
         case StateBallxDP is 
           when BEFORE_START =>
             BallXxDN <= TO_UNSIGNED(HS_DISPLAY/2, BallXxDN'length);
             BallYxDN <= TO_UNSIGNED(VS_DISPLAY/2, BallYxDN'length);
             if (LeftxSI = '1' and RightxSI = '1') then
-              STATEBallxDN <= MOVING_RIGHT_DOWN;
+              StateBallxDN <= MOVING_RIGHT_DOWN;
             end if;
 
           when MOVING_RIGHT_DOWN =>
@@ -100,20 +100,20 @@ begin
             BallYxDN <= BallYxDP + BALL_STEP_Y;
             -- BallXxDP - BALL_WIDTH/2 >= PlateXxDP - PLATE_WIDTH/2 and BallXxDP + BALL_WIDTH/2 <= PlateXxDP + PLATE_WIDTH/2 and BallYxDP + BALL_HEIGHT/2 >= VS_DISPLAY - PLATE_HEIGHT
             if (BallXxDP + PLATE_WIDTH/2 >= PlateXxDP + BALL_WIDTH/2 and BallXxDP + BALL_WIDTH/2 <= PlateXxDP + PLATE_WIDTH/2 and BallYxDP + BALL_HEIGHT/2 >= VS_DISPLAY - PLATE_HEIGHT) then
-              Colour_CNTxDN <= (others => '0') when Colour_CNTxDP = NUM_BALL_COLOURS - 1 else Colour_CNTxDP + 1;
-              STATEBallxDN <= MOVING_RIGHT_UP;
+              ColourCNTxDN <= (others => '0') when ColourCNTxDP = NUM_BALL_COLOURS - 1 else ColourCNTxDP + 1;
+              StateBallxDN <= MOVING_RIGHT_UP;
             elsif (BallXxDP >= HS_DISPLAY - BALL_WIDTH and BallYxDP /= VS_DISPLAY) then
-              Colour_CNTxDN <= (others => '0') when Colour_CNTxDP = NUM_BALL_COLOURS - 1 else Colour_CNTxDP + 1;
-              STATEBallxDN <= MOVING_LEFT_DOWN;
+              ColourCNTxDN <= (others => '0') when ColourCNTxDP = NUM_BALL_COLOURS - 1 else ColourCNTxDP + 1;
+              StateBallxDN <= MOVING_LEFT_DOWN;
             -- BallXxDP - BALL_WIDTH/2 >= FloatingPlateXxDP - PLATE_WIDTH/2 and BallXxDP + BALL_WIDTH/2 <= FloatingPlateXxDP + PLATE_WIDTH/2 and BallYxDP + BALL_HEIGHT/2 >= FLOATING_PLATE_Y
             elsif (BallXxDP + FLOATING_PLATE_WIDTH/2 >= FloatPlateXxDP + BALL_WIDTH/2 and 
                    BallXxDP + BALL_WIDTH/2 <= FloatPlateXxDP + FLOATING_PLATE_WIDTH/2 and 
                    BallYxDP + BALL_HEIGHT/2 >= FLOATING_PLATE_Y and
                    BallYxDP + BALL_HEIGHT/2 <= FLOATING_PLATE_Y + PLATE_HEIGHT) then
-              Colour_CNTxDN <= (others => '0') when Colour_CNTxDP = NUM_BALL_COLOURS - 1 else Colour_CNTxDP + 1;
-              STATEBallxDN <= MOVING_RIGHT_UP;
+              ColourCNTxDN <= (others => '0') when ColourCNTxDP = NUM_BALL_COLOURS - 1 else ColourCNTxDP + 1;
+              StateBallxDN <= MOVING_RIGHT_UP;
             elsif (BallYxDP + BALL_HEIGHT/2 >= VS_DISPLAY) then 
-              STATEBallxDN <= GAME_OVER;
+              StateBallxDN <= GAME_OVER;
             end if;
 
           when MOVING_RIGHT_UP =>
@@ -124,17 +124,17 @@ begin
               BallYxDN <= BallYxDP - BALL_STEP_Y;
             end if;
             if (BallXxDP + BALL_WIDTH/2 >= HS_DISPLAY and BallYxDP + BALL_HEIGHT/2 < VS_DISPLAY) then
-              Colour_CNTxDN <= (others => '0') when Colour_CNTxDP = NUM_BALL_COLOURS - 1 else Colour_CNTxDP + 1;
-              STATEBallxDN <= MOVING_LEFT_UP;
+              ColourCNTxDN <= (others => '0') when ColourCNTxDP = NUM_BALL_COLOURS - 1 else ColourCNTxDP + 1;
+              StateBallxDN <= MOVING_LEFT_UP;
             elsif (BallYxDP <= BALL_HEIGHT/2) then
-              Colour_CNTxDN <= (others => '0') when Colour_CNTxDP = NUM_BALL_COLOURS - 1 else Colour_CNTxDP + 1;
-              STATEBallxDN <= MOVING_RIGHT_DOWN;
+              ColourCNTxDN <= (others => '0') when ColourCNTxDP = NUM_BALL_COLOURS - 1 else ColourCNTxDP + 1;
+              StateBallxDN <= MOVING_RIGHT_DOWN;
             elsif (BallXxDP + FLOATING_PLATE_WIDTH/2 >= FloatPlateXxDP + BALL_WIDTH/2 and 
                    BallXxDP + BALL_WIDTH/2 <= FloatPlateXxDP + FLOATING_PLATE_WIDTH/2 and 
                    BallYxDP <= FLOATING_PLATE_Y + PLATE_HEIGHT + BALL_HEIGHT/2 and
                    BallYxDP >= FLOATING_PLATE_Y + BALL_HEIGHT/2) then
-              Colour_CNTxDN <= (others => '0') when Colour_CNTxDP = NUM_BALL_COLOURS - 1 else Colour_CNTxDP + 1;
-              STATEBallxDN <= MOVING_RIGHT_DOWN;
+              ColourCNTxDN <= (others => '0') when ColourCNTxDP = NUM_BALL_COLOURS - 1 else ColourCNTxDP + 1;
+              StateBallxDN <= MOVING_RIGHT_DOWN;
             end if;
           
           when MOVING_LEFT_UP =>
@@ -149,17 +149,17 @@ begin
               BallYxDN <= BallYxDP - BALL_STEP_Y;
             end if;
             if (BallYxDP <= BALL_HEIGHT/2) then
-              Colour_CNTxDN <= (others => '0') when Colour_CNTxDP = NUM_BALL_COLOURS - 1 else Colour_CNTxDP + 1;
-              STATEBallxDN <= MOVING_LEFT_DOWN;
+              ColourCNTxDN <= (others => '0') when ColourCNTxDP = NUM_BALL_COLOURS - 1 else ColourCNTxDP + 1;
+              StateBallxDN <= MOVING_LEFT_DOWN;
             elsif (BallXxDP <= BALL_WIDTH/2) then
-              Colour_CNTxDN <= (others => '0') when Colour_CNTxDP = NUM_BALL_COLOURS - 1 else Colour_CNTxDP + 1;
-              STATEBallxDN <= MOVING_RIGHT_UP;
+              ColourCNTxDN <= (others => '0') when ColourCNTxDP = NUM_BALL_COLOURS - 1 else ColourCNTxDP + 1;
+              StateBallxDN <= MOVING_RIGHT_UP;
             elsif (BallXxDP + FLOATING_PLATE_WIDTH/2 >= FloatPlateXxDP + BALL_WIDTH/2 and 
                    BallXxDP + BALL_WIDTH/2 <= FloatPlateXxDP + FLOATING_PLATE_WIDTH/2 and 
                    BallYxDP <= FLOATING_PLATE_Y + PLATE_HEIGHT + BALL_HEIGHT/2 and
                    BallYxDP >= FLOATING_PLATE_Y + BALL_HEIGHT/2) then
-              Colour_CNTxDN <= (others => '0') when Colour_CNTxDP = NUM_BALL_COLOURS - 1 else Colour_CNTxDP + 1;
-              STATEBallxDN <= MOVING_LEFT_DOWN;
+              ColourCNTxDN <= (others => '0') when ColourCNTxDP = NUM_BALL_COLOURS - 1 else ColourCNTxDP + 1;
+              StateBallxDN <= MOVING_LEFT_DOWN;
           end if;
 
           when MOVING_LEFT_DOWN =>
@@ -170,20 +170,20 @@ begin
             end if;
             BallYxDN <= BallYxDP + BALL_STEP_Y;
             if (BallXxDP <= BALL_WIDTH/2 and BallYxDP + BALL_HEIGHT/2 < VS_DISPLAY) then
-              Colour_CNTxDN <= (others => '0') when Colour_CNTxDP = NUM_BALL_COLOURS - 1 else Colour_CNTxDP + 1;
-              STATEBallxDN <= MOVING_RIGHT_DOWN;
+              ColourCNTxDN <= (others => '0') when ColourCNTxDP = NUM_BALL_COLOURS - 1 else ColourCNTxDP + 1;
+              StateBallxDN <= MOVING_RIGHT_DOWN;
             -- BallXxDP - BALL_WIDTH/2 >= PlateXxDP - PLATE_WIDTH/2 and BallXxDP + BALL_WIDTH/2 <= PlateXxDP + PLATE_WIDTH/2 and BallYxDP + BALL_HEIGHT/2 >= VS_DISPLAY - PLATE_HEIGHT
             elsif (BallXxDP + PLATE_WIDTH/2 >= PlateXxDP + BALL_WIDTH/2 and BallXxDP + BALL_WIDTH/2 <= PlateXxDP + PLATE_WIDTH/2 and BallYxDP + BALL_HEIGHT/2 >= VS_DISPLAY - PLATE_HEIGHT) then
-              Colour_CNTxDN <= (others => '0') when Colour_CNTxDP = NUM_BALL_COLOURS - 1 else Colour_CNTxDP + 1;
-              STATEBallxDN <= MOVING_LEFT_UP;
+              ColourCNTxDN <= (others => '0') when ColourCNTxDP = NUM_BALL_COLOURS - 1 else ColourCNTxDP + 1;
+              StateBallxDN <= MOVING_LEFT_UP;
             elsif (BallXxDP + FLOATING_PLATE_WIDTH/2 >= FloatPlateXxDP + BALL_WIDTH/2 and 
                    BallXxDP + BALL_WIDTH/2 <= FloatPlateXxDP + FLOATING_PLATE_WIDTH/2 and 
                    BallYxDP + BALL_HEIGHT/2 >= FLOATING_PLATE_Y and
                    BallYxDP + BALL_HEIGHT/2 <= FLOATING_PLATE_Y + PLATE_HEIGHT) then
-              Colour_CNTxDN <= (others => '0') when Colour_CNTxDP = NUM_BALL_COLOURS - 1 else Colour_CNTxDP + 1;
-              STATEBallxDN <= MOVING_LEFT_UP;
+              ColourCNTxDN <= (others => '0') when ColourCNTxDP = NUM_BALL_COLOURS - 1 else ColourCNTxDP + 1;
+              StateBallxDN <= MOVING_LEFT_UP;
             elsif (BallYxDP + BALL_HEIGHT/2 >= VS_DISPLAY) then 
-              STATEBallxDN <= GAME_OVER;
+              StateBallxDN <= GAME_OVER;
             end if;
 
           when GAME_OVER =>
@@ -191,7 +191,7 @@ begin
             BallXxDN <= TO_UNSIGNED(HS_DISPLAY/2, BallXxDN'length);
             BallYxDN <= TO_UNSIGNED(VS_DISPLAY/2, BallYxDN'length);
             if (LeftxSI = '1' and RightxSI = '1') then
-              STATEBallxDN <= BEFORE_START;
+              StateBallxDN <= BEFORE_START;
             end if;
 
           when others => NULL;
@@ -202,11 +202,13 @@ begin
   process (CLKxCI, RSTxRI, VSEdgexSI) is
     begin
       if (RSTxRI = '1') then
-        STATEBallxDP <= BEFORE_START;
+        StateBallxDP <= BEFORE_START;
+        ColourCNTxDP <= (others => '0');
       elsif (CLKxCI'event and CLKxCI = '1' and VSEdgexSI = '1') then
-        STATEBallxDP <= STATEBallxDN;
+        StateBallxDP <= StateBallxDN;
         BallXxDP <= BallXxDN;
         BallYxDP <= BallYxDN;
+        ColourCNTxDP <= ColourCNTxDN;
       end if;
     end process;
 
@@ -216,20 +218,20 @@ begin
   p_fsm_plate: process(all)
     begin
       PlateXxDN <= PlateXxDP;
-      STATEPlatexDN <= STATEPlatexDP;
-      case STATEPlatexDP is
+      StatePlatexDN <= StatePlatexDP;
+      case StatePlatexDP is
         when START =>
           PlateXxDN <= TO_UNSIGNED(HS_DISPLAY/2, PlateXxDN'length);
           if (LeftxSI = '1' and RightxSI = '1') then
-            STATEPlatexDN <= IDLE;
+            StatePlatexDN <= IDLE;
           end if;
         when IDLE =>
-          if (STATEBallxDP = GAME_OVER) then
-            STATEPlatexDN <= START;
+          if (StateBallxDP = GAME_OVER) then
+            StatePlatexDN <= START;
           elsif (RightxSI = '1') then
-            STATEPlatexDN <= RIGHT;
+            StatePlatexDN <= RIGHT;
           elsif (LeftxSI = '1') then
-            STATEPlatexDN <= LEFT;
+            StatePlatexDN <= LEFT;
           end if;
         when LEFT =>
           if (PlateXxDP > PLATE_WIDTH/2 + PLATE_STEP_X) then
@@ -237,18 +239,18 @@ begin
           else
             PlateXxDN <= TO_UNSIGNED(PLATE_WIDTH/2, PlateXxDN'length);
           end if;
-          STATEPlatexDN <= HOLD;
+          StatePlatexDN <= HOLD;
         when RIGHT =>
           if (PlateXxDP + PLATE_STEP_X < HS_DISPLAY - PLATE_WIDTH/2) then
             PlateXxDN <= PlateXxDP + PLATE_STEP_X;
           else
             PlateXxDN <= TO_UNSIGNED(HS_DISPLAY - PLATE_WIDTH/2, PlateXxDN'length);
           end if;
-          STATEPlatexDN <= HOLD;
+          StatePlatexDN <= HOLD;
         when HOLD =>
-          STATEPlatexDN <= HOLD;
+          StatePlatexDN <= HOLD;
           if (LeftxSI = '0' and RightxSI = '0') then
-            STATEPlatexDN <= IDLE;
+            StatePlatexDN <= IDLE;
           end if;
       end case;
     end process p_fsm_plate;
@@ -256,16 +258,16 @@ begin
   process (CLKxCI, RSTxRI, VSEdgexSI) is
     begin
       if (RSTxRI = '1') then
-        STATEPlatexDP <= START;
+        StatePlatexDP <= START;
       elsif (CLKxCI'event and CLKxCI = '1' and VSEdgexSI = '1') then
-        STATEPlatexDP <= STATEPlatexDN;
+        StatePlatexDP <= StatePlatexDN;
         PlateXxDP <= PlateXxDN;
       end if;
     end process;
 
   PlateXxDO <= PlateXxDP;
 
-  FloatPlateXxDN <= FloatPlateXxDP when counterxDP /= 9 else
+  FloatPlateXxDN <= FloatPlateXxDP when FloatCntxDP /= 9 else
                     FloatPlateXxDP + PLATE_STEP_X when FloatPlateDirxDP = '1' and FloatPlateXxDP + PLATE_STEP_X < HS_DISPLAY - FLOATING_PLATE_WIDTH/2 else
                     TO_UNSIGNED(HS_DISPLAY - FLOATING_PLATE_WIDTH/2, FloatPlateXxDN'length) when FloatPlateDirxDP = '1' else
                     FloatPlateXxDP - PLATE_STEP_X when FloatPlateXxDP - PLATE_STEP_X > FLOATING_PLATE_WIDTH/2 else
@@ -273,10 +275,10 @@ begin
   FloatPlateDirxDN <= '0' when (FloatPlateXxDP >= HS_DISPLAY - FLOATING_PLATE_WIDTH/2) else 
                       '1' when (FloatPlateXxDP = FLOATING_PLATE_WIDTH/2) else
                       FloatPlateDirxDP;
-  counterxDN <= (others => '0') when counterxDP = 9 else
-                counterxDP + 1;
+  FloatCntxDN <= (others => '0') when FloatCntxDP = 9 else
+                FloatCntxDP + 1;
 
-  BallColourxDO <= Colour_CNTxDP;
+  BallColourxDO <= ColourCNTxDP;
   
   PlayerLostxSO <= PlayerLostxS;
 
@@ -285,13 +287,11 @@ begin
       if (RSTxRI = '1') then
         FloatPlateXxDP <= TO_UNSIGNED(HS_DISPLAY/2, PlateXxDP'length);
         FloatPlateDirxDP <= '1';
-        counterxDP <= (others => '0');
-        Colour_CNTxDP <= (others => '0');
+        FloatCntxDP <= (others => '0');
       elsif (CLKxCI'event and CLKxCI = '1' and VSEdgexSI = '1') then
         FloatPlateXxDP <= FloatPlateXxDN;
         FloatPlateDirxDP <= FloatPlateDirxDN;
-        counterxDP <= counterxDN;
-        Colour_CNTxDP <= Colour_CNTxDN;
+        FloatCntxDP <= FloatCntxDN;
       end if;
     end process;
 
