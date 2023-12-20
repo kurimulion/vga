@@ -115,7 +115,7 @@ begin
     else
       NxDN <= NxDP + 1;
       WExSO <= '0';
-      Z_IMxDN <= shift_left(shift_right(Z_RExDP * Z_IMxDP, N_FRAC)(N_BITS - 1 downto 0), 1) + coordYxDP;
+      Z_IMxDN <= shift_left(shift_right(Z_RExDP * Z_IMxDP, N_FRAC)(N_BITS - 1 downto 0), 1) + CoordYxDP;
       Z_RExDN <= ResxD;
       
       XxDN <= XxDP;
