@@ -181,7 +181,7 @@ begin
                    BallYxDP + BALL_HEIGHT/2 >= FLOATING_PLATE_Y and
                    BallYxDP + BALL_HEIGHT/2 <= FLOATING_PLATE_Y + PLATE_HEIGHT) then
               Colour_CNTxDN <= (others => '0') when Colour_CNTxDP = NUM_BALL_COLOURS - 1 else Colour_CNTxDP + 1;
-              STATEBallxDN <= MOVING_RIGHT_UP;
+              STATEBallxDN <= MOVING_LEFT_UP;
             elsif (BallYxDP + BALL_HEIGHT/2 >= VS_DISPLAY) then 
               STATEBallxDN <= GAME_OVER;
             end if;
