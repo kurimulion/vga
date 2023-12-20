@@ -379,9 +379,9 @@ DrawFloatPlatexS <= '1' when (XCoordxD >= FloatPlateXxD - FLOATING_PLATE_WIDTH/2
                               YCoordxD >= FLOATING_PLATE_Y and YCoordxD <= FLOATING_PLATE_Y + PLATE_HEIGHT) else '0';
 
 DrawLosexS <= '1' when ((XCoordxD >= HS_DISPLAY/2 and
-                        XCoordxD <= HS_DISPLAY/2, COORD_BW + 128 and
+                        XCoordxD <= HS_DISPLAY/2 + 128 and
                         YCoordxD >= VS_DISPLAY/2 and
-                        YCoordxD <= VS_DISPLAY/2, COORD_BW + 96) and PlayerLostxS = '1') else '0';
+                        YCoordxD <= VS_DISPLAY/2 + 96) and PlayerLostxS = '1') else '0';
 
 end rtl;
 --=============================================================================
