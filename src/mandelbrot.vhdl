@@ -55,8 +55,8 @@ architecture rtl of mandelbrot is
 begin
 
   -- TODO: Implement your own code here
-  ResxD <= shift_right(z_rxDP * z_rxDP, N_FRAC)(N_BITS - 1 downto 0) - shift_right(z_ixDP * z_ixDP, N_FRAC)(N_BITS - 1 downto 0) + coordXxDP;
-  LenxD <= unsigned(shift_right(z_rxDP * z_rxDP, N_FRAC)(N_BITS - 1 downto 0)) + unsigned(shift_right(z_ixDP * z_ixDP, N_FRAC)(N_BITS - 1 downto 0));
+  ResxD <= shift_right(Z_RExDP * Z_RExDP, N_FRAC)(N_BITS - 1 downto 0) - shift_right(Z_IMxDP * Z_IMxDP, N_FRAC)(N_BITS - 1 downto 0) + coordXxDP;
+  LenxD <= unsigned(shift_right(Z_RExDP * Z_RExDP, N_FRAC)(N_BITS - 1 downto 0)) + unsigned(shift_right(Z_IMxDP * Z_IMxDP, N_FRAC)(N_BITS - 1 downto 0));
 
   process(CLKxCI, RSTxRI)
   begin
@@ -115,7 +115,7 @@ begin
     else
       NxDN <= NxDP + 1;
       WExSO <= '0';
-      Z_IMxDN <= shift_left(tmp3(N_BITS - 1 + N_FRAC downto N_FRAC), 1) + CoordYxDP;
+      Z_IMxDN <= shift_left(shift_right(Z_RExDP * Z_IMxDP, N_FRAC)(N_BITS - 1 downto 0), 1) + coordYxDP;
       Z_RExDN <= ResxD;
       
       XxDN <= XxDP;
