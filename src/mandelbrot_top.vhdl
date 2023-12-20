@@ -63,6 +63,16 @@ architecture rtl of mandelbrot_top is
   signal DINAxD    : std_logic_vector(MEM_DATA_BW - 1 downto 0);
   signal DOUTBxD   : std_logic_vector(MEM_DATA_BW - 1 downto 0);
 
+  -- blk_mem_gen_1
+  signal WrAddrDxD : std_logic_vector(14 - 1 downto 0);
+  signal RdAddrCxD : std_logic_vector(14 - 1 downto 0);
+  signal ENDxS     : std_logic;
+  signal WEDxS     : std_logic_vector(0 downto 0);
+  signal ENCxS     : std_logic;
+  signal DINDxD    : std_logic_vector(12 - 1 downto 0);
+  signal DOUTCxD   : std_logic_vector(12 - 1 downto 0);
+  
+
   signal BGRedxS   : std_logic_vector(COLOR_BW - 1 downto 0); -- Background colors from the memory
   signal BGGreenxS : std_logic_vector(COLOR_BW - 1 downto 0);
   signal BGBluexS  : std_logic_vector(COLOR_BW - 1 downto 0);
@@ -80,12 +90,18 @@ architecture rtl of mandelbrot_top is
   -- pong_fsm
   signal BallXxD  : unsigned(COORD_BW - 1 downto 0); -- Coordinates of ball and plate
   signal BallYxD  : unsigned(COORD_BW - 1 downto 0);
+  signal BallColourxD : unsigned(3 - 1 downto 0);
   signal PlateXxD : unsigned(COORD_BW - 1 downto 0);
   signal FloatPlateXxD : unsigned(COORD_BW - 1 downto 0);
 
   signal DrawBallxS  : std_logic; -- If 1, draw the ball
   signal DrawPlatexS : std_logic; -- If 1, draw the plate
   signal DrawFloatPlatexS : std_logic; -- If 1, draw the floating plate
+  
+  signal DrawLosexS : std_logic;
+  signal PlayerLostxS : std_logic;
+
+  signal BallColourxS : std_logic_vector(3 * COLOR_BW - 1 downto 0);
 
   -- mandelbrot
   signal MandelbrotWExS   : std_logic; -- If 1, Mandelbrot writes
@@ -117,6 +133,21 @@ architecture rtl of mandelbrot_top is
       enb   : in std_logic;
       addrb : in std_logic_vector(15 downto 0);
       doutb : out std_logic_vector(11 downto 0)
+    );
+  end component;
+
+  component blk_mem_gen_1
+    port (
+      clka  : in std_logic;
+      ena   : in std_logic;
+      wea   : in std_logic_vector(0 downto 0);
+      addra : in std_logic_vector(14 - 1 downto 0);
+      dina  : in std_logic_vector(12 - 1 downto 0);
+
+      clkb  : in std_logic;
+      enb   : in std_logic;
+      addrb : in std_logic_vector(14 - 1 downto 0);
+      doutb : out std_logic_vector(12 - 1 downto 0)
     );
   end component;
 
@@ -167,7 +198,11 @@ architecture rtl of mandelbrot_top is
       BallXxDO  : out unsigned(COORD_BW - 1 downto 0);
       BallYxDO  : out unsigned(COORD_BW - 1 downto 0);
       PlateXxDO : out unsigned(COORD_BW - 1 downto 0);
-      FloatPlateXxDO : out unsigned(COORD_BW - 1 downto 0)
+      FloatPlateXxDO : out unsigned(COORD_BW - 1 downto 0);
+      
+      BallColourxDO : out unsigned(3 - 1 downto 0);
+      
+      PlayerLostxSO : out std_logic
     );
   end component pong_fsm;
 
@@ -213,6 +248,20 @@ begin
       doutb => DOUTBxD
     );
 
+    i_blk_mem_gen_1 : blk_mem_gen_1
+    port map (
+      clka  => CLK75xC,
+      ena   => ENDxS,
+      wea   => WEDxS,
+      addra => WrAddrDxD,
+      dina  => DINDxD,
+
+      clkb  => CLK75xC,
+      enb   => ENCxS,
+      addrb => RdAddrCxD,
+      doutb => DOUTCxD
+    );
+
   i_vga_controller: vga_controller
     port map (
       CLKxCI => CLK75xC,
@@ -251,7 +300,11 @@ begin
       BallXxDO  => BallXxD,
       BallYxDO  => BallYxD,
       PlateXxDO => PlateXxD,
-      FloatPlateXxDO => FloatPlateXxD
+      FloatPlateXxDO => FloatPlateXxD,
+      
+      BallColourxDO => BallColourxD,
+      
+      PlayerLostxSO => PlayerLostxS
     );
 
   i_mandelbrot : mandelbrot
@@ -270,7 +323,8 @@ begin
 --=============================================================================
 
 -- Port A
-ENAxS     <= MandelbrotWExS;
+ENAxS     <= '1' when MandelbrotWExS = '1' and (MandelbrotXxD mod 4 = 0) and (MandelbrotYxD mod 4 = 0) else
+             '0';
 WEAxS     <= (others => MandelbrotWExS);
 WrAddrAxD <= std_logic_vector(resize(shift_right(MandelbrotXxD, 2) + shift_right(MandelbrotYxD, 2) * 256, 16));
 DINAxD    <= std_logic_vector(MandelbrotITERxD) when MandelBrotITERxD /= MAX_ITER else (others => '0');
@@ -279,35 +333,55 @@ DINAxD    <= std_logic_vector(MandelbrotITERxD) when MandelBrotITERxD /= MAX_ITE
 ENBxS     <= '1';
 RdAddrBxD <= std_logic_vector(resize(shift_right(XCoordxD, 2) + shift_right(YCoordxD, 2) * 256, 16));
 
+--Port C
+ENCxS <= '1';
+RdAddrCxD <= std_logic_vector(resize((XCoordxD and TO_UNSIGNED(128 - 1, COORD_BW)) + (YCoordxD mod 96) * 128, 14));
+
+--Port D
+ENDxS     <= '0';
+WEDxS     <= (others => '0');
+WrAddrDxD <= (others => '0');
+DINDxD    <= (others => '0');
 --=============================================================================
 -- SPRITE SIGNAL MAPPING
 --=============================================================================
 
-BGRedxS   <= DOUTBxD(3 * COLOR_BW - 1 downto 2 * COLOR_BW);
-BGGreenxS <= DOUTBxD(2 * COLOR_BW - 1 downto 1 * COLOR_BW);
-BGBluexS  <= DOUTBxD(1 * COLOR_BW - 1 downto 0 * COLOR_BW);
+BGRedxS   <= DOUTCxD(3 * COLOR_BW - 1 downto 2 * COLOR_BW) when DrawLosexS = '1' else DOUTBxD(3 * COLOR_BW - 1 downto 2 * COLOR_BW);
+BGGreenxS <= DOUTCxD(2 * COLOR_BW - 1 downto 1 * COLOR_BW) when DrawLosexS = '1' else DOUTBxD(2 * COLOR_BW - 1 downto 1 * COLOR_BW);
+BGBluexS  <= DOUTCxD(1 * COLOR_BW - 1 downto 0 * COLOR_BW) when DrawLosexS = '1' else DOUTBxD(1 * COLOR_BW - 1 downto 0 * COLOR_BW);
 
-RedxS   <= "1111" when DrawPlatexS = '1' else
-           "0000" when DrawBallxS = '1'  else
+BallColourxS <= std_logic_vector(TO_UNSIGNED(3840, 3 * COLOR_BW))   when BallColourxD = 0 else
+                std_logic_vector(TO_UNSIGNED(240, 3 * COLOR_BW))    when BallColourxD = 1 else
+                std_logic_vector(TO_UNSIGNED(15, 3 * COLOR_BW))     when BallColourxD = 2 else
+                std_logic_vector(TO_UNSIGNED(255, 3 * COLOR_BW))    when BallColourxD = 3 else
+                std_logic_vector(TO_UNSIGNED(4080, 3 * COLOR_BW))   when BallColourxD = 4 else
+                std_logic_vector(TO_UNSIGNED(3855, 3 * COLOR_BW))   when BallColourxD = 5 else
+                std_logic_vector(TO_UNSIGNED(65535, 3 * COLOR_BW));
+
+RedxS   <= "1111" when DrawPlatexS = '1'  else
+           BallColourxS(3 * COLOR_BW - 1 downto 2 * COLOR_BW) when DrawBallxS = '1'  else
            "0000" when DrawFloatPlatexS = '1' else
            BGRedxS;
 GreenxS <= "0000" when DrawPlatexS = '1' else
-           "1111" when DrawBallxS = '1'  else
+           BallColourxS(2 * COLOR_BW - 1 downto 1 * COLOR_BW) when DrawBallxS = '1' else
            "0000" when DrawFloatPlatexS = '1' else
            BGGreenxS;
-BluexS  <= "0000" when DrawPlatexS = '1' else
-           "0000" when DrawBallxS = '1'  else
+BluexS  <= "0000" when DrawPlatexS = '1'  else
+           BallColourxS(1 * COLOR_BW - 1 downto 0 * COLOR_BW) when DrawBallxS = '1' else
            "1111" when DrawFloatPlatexS = '1' else
            BGBluexS;
 
 DrawPlatexS <= '1' when (XCoordxD >= PlateXxD - PLATE_WIDTH/2 and XCoordxD <= PlateXxD + PLATE_WIDTH/2 and
                          YCoordxD >= VS_DISPLAY - PLATE_HEIGHT and YCoordxD <= VS_DISPLAY) else '0';
--- DrawBallxS  <= '1' when (XCoordxD >= BallXxD - BALL_WIDTH/2 and XCoordxD <= BallXxD + BALL_WIDTH/2 and
---                          YCoordxD >= BallYxD - BALL_WIDTH/2 and YCoordxD <= BallYxD + BALL_WIDTH/2) else '0';
 DrawBallxS  <= '1' when (UNSIGNED(SIGNED(YCoordxD - BallYxD) * SIGNED(YCoordxD - BallYxD)) +
                          UNSIGNED(SIGNED(XCoordxD - BallXxD) * SIGNED(XCoordxD - BallXxD)) <= (BALL_WIDTH * BALL_WIDTH / 4)) else '0';
 DrawFloatPlatexS <= '1' when (XCoordxD >= FloatPlateXxD - FLOATING_PLATE_WIDTH/2 and XCoordxD <= FloatPlateXxD + FLOATING_PLATE_WIDTH/2 and
                               YCoordxD >= FLOATING_PLATE_Y and YCoordxD <= FLOATING_PLATE_Y + PLATE_HEIGHT) else '0';
+
+DrawLosexS <= '1' when ((XCoordxD >= HS_DISPLAY/2 and
+                        XCoordxD <= TO_UNSIGNED(HS_DISPLAY/2, COORD_BW) + 128 and
+                        YCoordxD >= VS_DISPLAY/2 and
+                        YCoordxD <= TO_UNSIGNED(VS_DISPLAY/2, COORD_BW) + 96) and PlayerLostxS = '1') else '0';
 
 end rtl;
 --=============================================================================

@@ -69,6 +69,7 @@ package dsd_prj_pkg is
   constant PLATE_STEP_X : natural := 40;
   constant FLOATING_PLATE_Y : natural := 350;
   constant FLOATING_PLATE_WIDTH : natural := 140;
+  constant NUM_BALL_COLOURS : natural := 6;
 
 -------------------------------------------------------------------------------
 -- Lab 8 parameters
@@ -82,7 +83,7 @@ package dsd_prj_pkg is
   constant N_BITS : natural := N_INT + N_FRAC;
 
   constant ITER_LIM : natural := 2**(2 + N_FRAC); -- Represents 2^2 in UQ3.15 (100.000000000000000)
-  constant MAX_ITER : natural := 100;             -- Maximum iteration bumber before stopping
+  constant MAX_ITER : natural := 2**MEM_DATA_BW - 1;             -- Maximum iteration bumber before stopping
 
   -- Start at (-2, -1) = (0b110, 0b111) on the complex plane. As the Mandelbrot fractal is symmetric
   -- along the real axis, this can be used to draw the Mandelbrot fractal similar to starting at (-2, 1).
