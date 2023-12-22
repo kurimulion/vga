@@ -40,14 +40,14 @@ architecture rtl of mandelbrot is
 
   -- TODO: Implement your own code here
   signal NxDP, NxDN : unsigned(MEM_DATA_BW - 1 downto 0);
-  signal Z_RExDP, Z_RExDN : signed(2 * N_BITS - 1 downto 0);
-  signal Z_IMxDP, Z_IMxDN : signed(2 * N_BITS - 1 downto 0);
+  signal Z_RExDP, Z_RExDN : signed(2*N_BITS - 1 downto 0);
+  signal Z_IMxDP, Z_IMxDN : signed(2*N_BITS - 1 downto 0);
   signal XxDP, XxDN : unsigned(COORD_BW - 1 downto 0);
   signal YxDP, YxDN : unsigned(COORD_BW - 1 downto 0);
-  signal CoordXxDP, CoordXxDN : signed(2 * N_BITS - 1 downto 0);
-  signal CoordYxDP, CoordYxDN : signed(2 * N_BITS - 1 downto 0);
-  signal ResxD : signed(2 * N_BITS - 1 downto 0);
-  signal LenxD : unsigned(2 * N_BITS - 1 downto 0);
+  signal CoordXxDP, CoordXxDN : signed(2*N_BITS - 1 downto 0);
+  signal CoordYxDP, CoordYxDN : signed(2*N_BITS - 1 downto 0);
+  signal ResxD : signed(2*N_BITS - 1 downto 0);
+  signal LenxD : unsigned(2*N_BITS - 1 downto 0);
   
 --=============================================================================
 -- ARCHITECTURE BEGIN
@@ -55,17 +55,17 @@ architecture rtl of mandelbrot is
 begin
 
   -- TODO: Implement your own code here
-  ResxD <= shift_right(Z_RExDP * Z_RExDP, N_FRAC)(2 * N_BITS - 1 downto 0) - shift_right(Z_IMxDP * Z_IMxDP, N_FRAC)(2 * N_BITS - 1 downto 0) + coordXxDP;
-  LenxD <= unsigned(shift_right(Z_RExDP * Z_RExDP, N_FRAC)(2 * N_BITS - 1 downto 0)) + unsigned(shift_right(Z_IMxDP * Z_IMxDP, N_FRAC)(2 * N_BITS - 1 downto 0));
+  ResxD <= shift_right(Z_RExDP * Z_RExDP, N_FRAC)(2*N_BITS - 1 downto 0) - shift_right(Z_IMxDP * Z_IMxDP, N_FRAC)(2*N_BITS - 1 downto 0) + coordXxDP;
+  LenxD <= unsigned(shift_right(Z_RExDP * Z_RExDP, N_FRAC)(2*N_BITS - 1 downto 0)) + unsigned(shift_right(Z_IMxDP * Z_IMxDP, N_FRAC)(2*N_BITS - 1 downto 0));
 
   process(CLKxCI, RSTxRI)
   begin
     if RSTxRI = '1' then
       NxDP <= (others => '0');
-      Z_RExDP <= C_RE_0;
-      Z_IMxDP <= C_IM_0;
-      CoordXxDP <= C_RE_0;
-      CoordYxDP <= C_IM_0;
+      Z_RExDP <= resize(C_RE_0, 2*N_BITS);
+      Z_IMxDP <= resize(C_IM_0, 2*N_BITS);
+      CoordXxDP <= resize(C_RE_0, 2*N_BITS);
+      CoordYxDP <= resize(C_IM_0, 2*N_BITS);
       XxDP <= (others => '0');
       YxDP <= (others => '0');
     elsif (CLKxCI'event and CLKxCI = '1') then
@@ -91,22 +91,22 @@ begin
       -- increment X and Y if necessary
       if XxDP = HS_DISPLAY - 1 then
         XxDN <= (others => '0');
-        CoordXxDN <= C_RE_0;
-        Z_RExDN <= C_RE_0;
+        CoordXxDN <= resize(C_RE_0, 2*N_BITS);
+        Z_RExDN <= resize(C_RE_0, 2*N_BITS);
         -- check if Y is at the end of the line
         if YxDP = VS_DISPLAY - 1 then
           YxDN <= (others => '0');
-          CoordYxDN <= C_IM_0;
-          Z_IMxDN <= C_IM_0;
+          CoordYxDN <= resize(C_IM_0, 2*N_BITS);
+          Z_IMxDN <= resize(C_IM_0, 2*N_BITS);
         else
           YxDN <= YxDP + 1;
-          CoordYxDN <= CoordYxDP + C_IM_INC;
-          Z_IMxDN <= CoordYxDP + C_IM_INC;
+          CoordYxDN <= CoordYxDP + resize(C_IM_INC, 2*N_BITS);
+          Z_IMxDN <= CoordYxDP + resize(C_IM_INC, 2*N_BITS);
         end if;
       else
         XxDN <= XxDP + 1;
-        CoordXxDN <= CoordXxDP + C_RE_INC;
-        Z_RExDN <= CoordXxDP + C_RE_INC;
+        CoordXxDN <= CoordXxDP + resize(C_RE_INC, 2*N_BITS);
+        Z_RExDN <= CoordXxDP + resize(C_RE_INC, 2*N_BITS);
 
         YxDN <= YxDP;
         CoordYxDN <= CoordYxDP;
@@ -115,7 +115,7 @@ begin
     else
       NxDN <= NxDP + 1;
       WExSO <= '0';
-      Z_IMxDN <= shift_left(shift_right(Z_RExDP * Z_IMxDP, N_FRAC)(2 * N_BITS - 1 downto 0), 1) + CoordYxDP;
+      Z_IMxDN <= shift_left(shift_right(Z_RExDP * Z_IMxDP, N_FRAC)(2*N_BITS - 1 downto 0), 1) + CoordYxDP;
       Z_RExDN <= ResxD;
       
       XxDN <= XxDP;
