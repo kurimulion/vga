@@ -40,14 +40,14 @@ architecture rtl of mandelbrot is
 
   -- TODO: Implement your own code here
   signal NxDP, NxDN : unsigned(MEM_DATA_BW - 1 downto 0);
-  signal Z_RExDP, Z_RExDN : signed(N_BITS - 1 downto 0);
-  signal Z_IMxDP, Z_IMxDN : signed(N_BITS - 1 downto 0);
+  signal Z_RExDP, Z_RExDN : signed(2 * N_BITS - 1 downto 0);
+  signal Z_IMxDP, Z_IMxDN : signed(2 * N_BITS - 1 downto 0);
   signal XxDP, XxDN : unsigned(COORD_BW - 1 downto 0);
   signal YxDP, YxDN : unsigned(COORD_BW - 1 downto 0);
-  signal CoordXxDP, CoordXxDN : signed(N_BITS - 1 downto 0);
-  signal CoordYxDP, CoordYxDN : signed(N_BITS - 1 downto 0);
-  signal ResxD : signed(N_BITS - 1 downto 0);
-  signal LenxD : unsigned(N_BITS - 1 downto 0);
+  signal CoordXxDP, CoordXxDN : signed(2 * N_BITS - 1 downto 0);
+  signal CoordYxDP, CoordYxDN : signed(2 * N_BITS - 1 downto 0);
+  signal ResxD : signed(2 * N_BITS - 1 downto 0);
+  signal LenxD : unsigned(2 * N_BITS - 1 downto 0);
   
 --=============================================================================
 -- ARCHITECTURE BEGIN
@@ -55,8 +55,8 @@ architecture rtl of mandelbrot is
 begin
 
   -- TODO: Implement your own code here
-  ResxD <= shift_right(Z_RExDP * Z_RExDP, N_FRAC)(N_BITS - 1 downto 0) - shift_right(Z_IMxDP * Z_IMxDP, N_FRAC)(N_BITS - 1 downto 0) + coordXxDP;
-  LenxD <= unsigned(shift_right(Z_RExDP * Z_RExDP, N_FRAC)(N_BITS - 1 downto 0)) + unsigned(shift_right(Z_IMxDP * Z_IMxDP, N_FRAC)(N_BITS - 1 downto 0));
+  ResxD <= shift_right(Z_RExDP * Z_RExDP, N_FRAC)(2 * N_BITS - 1 downto 0) - shift_right(Z_IMxDP * Z_IMxDP, N_FRAC)(2 * N_BITS - 1 downto 0) + coordXxDP;
+  LenxD <= unsigned(shift_right(Z_RExDP * Z_RExDP, N_FRAC)(2 * N_BITS - 1 downto 0)) + unsigned(shift_right(Z_IMxDP * Z_IMxDP, N_FRAC)(2 * N_BITS - 1 downto 0));
 
   process(CLKxCI, RSTxRI)
   begin
@@ -115,7 +115,7 @@ begin
     else
       NxDN <= NxDP + 1;
       WExSO <= '0';
-      Z_IMxDN <= shift_left(shift_right(Z_RExDP * Z_IMxDP, N_FRAC)(N_BITS - 1 downto 0), 1) + CoordYxDP;
+      Z_IMxDN <= shift_left(shift_right(Z_RExDP * Z_IMxDP, N_FRAC)(2 * N_BITS - 1 downto 0), 1) + CoordYxDP;
       Z_RExDN <= ResxD;
       
       XxDN <= XxDP;
